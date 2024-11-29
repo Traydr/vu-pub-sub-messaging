@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class MessagingServer {
     private ServerSocket serverSocket;
@@ -47,5 +48,28 @@ public class MessagingServer {
             System.out.println("Socket is already closed");
         }
         System.out.println("Server stopped");
+    }
+
+    public static void main(String[] args) {
+        MessagingServer server = new MessagingServer();
+        try (Scanner scanner = new Scanner(System.in)) {
+            boolean validPort = false;
+
+            while (!validPort) {
+                try {
+                    System.out.println("What port should the server listen on (0 for random)?");
+                    int port = Integer.parseInt(scanner.nextLine());
+                    server.start(port);
+                    validPort = true;
+                } catch (BindException e) {
+                    System.out.println("Couldn't bind to this port, please enter another one");
+                }
+            }
+            String isClosing = "";
+            while (!isClosing.equals("quit")) {
+                isClosing = scanner.nextLine();
+            }
+            server.stop();
+        }
     }
 }
