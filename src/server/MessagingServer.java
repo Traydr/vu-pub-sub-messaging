@@ -8,13 +8,16 @@ import java.util.Scanner;
 
 public class MessagingServer {
     private ServerSocket serverSocket;
-    private ArrayList<ClientHandler> clients;
+    private final ArrayList<ClientHandler> clients;
+
+    public MessagingServer() {
+        this.clients = new ArrayList<>();
+    }
 
     public void start(int port) throws BindException {
         try {
             serverSocket = new ServerSocket(port);
             System.out.println("Server is listening at: " + serverSocket.getLocalSocketAddress());
-            this.clients = new ArrayList<>();
 
             Thread acceptConnection = new Thread(new AcceptConnection(serverSocket, this));
             acceptConnection.start();
@@ -35,8 +38,12 @@ public class MessagingServer {
         }
     }
 
-    public int getPort() {
-        return serverSocket.getLocalPort();
+    public void sendToTopic(String topic, String message) {
+        synchronized (clients) {
+            for (ClientHandler client : clients) {
+                client.sendForTopic(topic, message);
+            }
+        }
     }
 
     public void stop() {

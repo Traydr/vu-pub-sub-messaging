@@ -26,3 +26,7 @@ subscribers. The server response is of the form:
 ### Topic Message
 
 ![Pub Sub Diagram](docs/images/pub-sub-diagram.png)
+
+### For more reading
+
+[MQTT Wikipedia](https://en.wikipedia.org/wiki/MQTT)
