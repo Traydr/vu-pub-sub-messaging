@@ -6,11 +6,11 @@ import java.net.Socket;
 
 public class AcceptConnection implements Runnable{
     ServerSocket serverSocket;
-    MessagingServer calculatorServer;
+    MessagingServer messagingServer;
 
-    public AcceptConnection(ServerSocket serverSocket, MessagingServer calculatorServer) {
+    public AcceptConnection(ServerSocket serverSocket, MessagingServer messagingServer) {
         this.serverSocket = serverSocket;
-        this.calculatorServer = calculatorServer;
+        this.messagingServer = messagingServer;
     }
 
     @Override
@@ -26,7 +26,7 @@ public class AcceptConnection implements Runnable{
             if (client != null) {
                 ClientHandler clientHandler = null;
                 try {
-                    clientHandler = new ClientHandler(client, calculatorServer);
+                    clientHandler = new ClientHandler(client, messagingServer);
                 } catch (IOException e) {
                     System.out.println("Socket is closed");
                 }
