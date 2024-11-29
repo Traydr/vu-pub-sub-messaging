@@ -76,15 +76,14 @@ public class ClientHandler implements Runnable {
         }
 
         if (!hasIdentified) {
-            if (parts.length != 2) {
-                send("Invalid request, must first identify as publisher or subscriber");
-                return;
-            }
-
             if (parts[0].equals("pub")) {
                 isPublisher = true;
                 send("Identified as publisher");
             } else if (parts[0].equals("sub")) {
+                if (parts.length != 2) {
+                    send("Invalid request, message must be \"sub [topic]\"");
+                    return;
+                }
                 isPublisher = false;
                 topics.add(parts[1]);
                 send("Identified as subscribed for topic " + parts[1]);
