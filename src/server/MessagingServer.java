@@ -6,12 +6,28 @@ import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import java.util.HashMap;
+
 public class MessagingServer {
     private ServerSocket serverSocket;
     private final ArrayList<ClientHandler> clients;
+    private final HashMap<String, String> users;
 
     public MessagingServer() {
         this.clients = new ArrayList<>();
+        this.users = new HashMap<>();
+    }
+
+    public synchronized boolean registerUser(String username, String password) {
+        if (users.containsKey(username)) {
+            return false;
+        }
+        users.put(username, password);
+        return true;
+    }
+
+    public synchronized boolean authenticateUser(String username, String password) {
+        return users.containsKey(username) && users.get(username).equals(password);
     }
 
     public void start(int port) throws BindException {

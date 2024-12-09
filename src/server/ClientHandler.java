@@ -16,6 +16,7 @@ public class ClientHandler implements Runnable {
     private final MessagingServer server;
     private final BufferedWriter writer;
     private boolean isClosed;
+    private boolean isAuthenticated;
     private boolean hasIdentified;
     private boolean isPublisher;
     private final Set<String> topics;
@@ -25,6 +26,7 @@ public class ClientHandler implements Runnable {
         this.server = server;
         this.writer = new BufferedWriter(new OutputStreamWriter(this.client.getOutputStream()));
         this.isClosed = false;
+        this.isAuthenticated = false;
         this.hasIdentified = false;
         this.isPublisher = false;
         this.topics = new HashSet<>();
@@ -56,7 +58,6 @@ public class ClientHandler implements Runnable {
             }
             close();
         } catch (IOException e) {
-            System.out.println();
             close();
         }
     }
@@ -72,6 +73,38 @@ public class ClientHandler implements Runnable {
 
         if (parts.length == 0) {
             send("Invalid request, message must not be empty");
+            return;
+        }
+
+        if (!isAuthenticated) {
+            switch (parts[0]) {
+                case "register" -> {
+                    if (parts.length != 3) {
+                        send("Invalid request, message must be \"register [username] [password]\"");
+                        return;
+                    }
+                    boolean success = server.registerUser(parts[1], parts[2]);
+                    if (success) {
+                        send("Registration successful! You can now log in.");
+                    } else {
+                        send("Registration failed, username already exists.");
+                    }
+                }
+                case "login" -> {
+                    if (parts.length != 3) {
+                        send("Invalid request, message must be \"login [username] [password]\"");
+                        return;
+                    }
+                    boolean success = server.authenticateUser(parts[1], parts[2]);
+                    if (success) {
+                        send("Login successful!");
+                        isAuthenticated = true;
+                    } else {
+                        send("Login failed, invalid username or password.");
+                    }
+                }
+                default -> send("Invalid request, you must register or log in first.");
+            }
             return;
         }
 
