@@ -77,7 +77,7 @@ public class ClientHandler implements Runnable {
         }
 
         if (!isAuthenticated) {
-            switch (parts[0]) {
+            switch (parts[0].toLowerCase()) {
                 case "register" -> {
                     if (parts.length != 3) {
                         send("Invalid request, message must be \"register [username] [password]\"");

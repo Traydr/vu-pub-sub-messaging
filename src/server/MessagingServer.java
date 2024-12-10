@@ -3,6 +3,8 @@ package server;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.ServerSocket;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -22,12 +24,35 @@ public class MessagingServer {
         if (users.containsKey(username)) {
             return false;
         }
-        users.put(username, password);
+        String hashedPassword = hashPassword(password);
+        if (hashedPassword == null) return false;
+        users.put(username, hashedPassword);
         return true;
     }
 
     public synchronized boolean authenticateUser(String username, String password) {
-        return users.containsKey(username) && users.get(username).equals(password);
+        if (!users.containsKey(username)) {
+            return false;
+        }
+        String hashedPassword = hashPassword(password);
+        return hashedPassword != null && hashedPassword.equals(users.get(username));
+    }
+
+    private String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes());
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            System.out.println("Error hashing password: " + e.getMessage());
+            return null;
+        }
     }
 
     public void start(int port) throws BindException {
