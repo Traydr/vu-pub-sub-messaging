@@ -6,6 +6,7 @@ import java.nio.BufferOverflowException;
 import java.nio.channels.SocketChannel;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.List;
 
 import shared.Config;
 import shared.util.Styling;
@@ -79,6 +80,20 @@ public class TransmissionBuffer {
         return true;
     }
 
+    private byte[] getNonZeroBytes(byte[] data) {
+        List<Byte> result = new ArrayList<>(data.length);
+        for (int i = 0; i < data.length; i++) {
+            if (data[i] != 0) {
+                result.add(data[i]);
+            }
+        }
+        byte[] resultArray = new byte[result.size()];
+        for (int i = 0; i < result.size(); i++) {
+            resultArray[i] = result.get(i);
+        }
+        return resultArray;
+    }
+
     public synchronized ArrayList<Object> retrieveObjects() {
         //TODO: Fix buffer submitting before actual data can be read due to non-growing size
 //        StringBuilder hexString = new StringBuilder();
@@ -88,7 +103,9 @@ public class TransmissionBuffer {
 //            hexString.append(hex);
 //        }
 //        Styling.printError(hexString.toString());
-//        Styling.printError(new String(in.slice(0, in.position()).array()));
+        //var bytes = getNonZeroBytes(in.slice(0, in.position()).array());
+        //if (bytes.length > 5)
+        //    Styling.printError(new String(bytes));
         var objects = new ArrayList<>();
         var lastPos = in.position();
         in.reset();
@@ -110,6 +127,7 @@ public class TransmissionBuffer {
     }
 
     public synchronized void storeObject(Object item) {
+        //Styling.printError("TransmissionBuffer: storeObject -> " + item.toString());
         try (var bos = new ByteArrayOutputStream();
              var oos = new ObjectOutputStream(bos)) {
             oos.writeObject(item);
@@ -125,7 +143,9 @@ public class TransmissionBuffer {
                     out.flip();
                     out = ByteBuffer.allocate(out.capacity() * 2).put(out);
                 }
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+            //Styling.printError("TransmissionBuffer: error -> " + ignored.getMessage().toString());
+        }
     }
 
 }

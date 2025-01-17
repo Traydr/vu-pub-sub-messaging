@@ -18,6 +18,7 @@ import static shared.util.Styling.Colors.*;
 
 import server.MessagingServer;
 import shared.models.generics.Pair;
+import shared.util.Styling;
 
 
 public class ClientHandler {
@@ -124,8 +125,11 @@ public class ClientHandler {
                             if (message != null) {
                                 for (var c : server.getClients())
                                     if (c.user != null && c.user.getSubscriptions().contains(message.topic())) {
-                                        c.buffer.storeObject(new Response(ResponseType.NewPublication, message));
-                                        printError(c.user.username() + " got " + message.topic().getTitle());
+                                        c.buffer.storeObject(new Response(ResponseType.Echo, message.topic().getTitle() + ":" + message.body()));
+                                        //c.buffer.storeObject(new Response(ResponseType.NewPublication, message));
+                                        //printError(c.user.username() + " received a Request from " + message.topic().getTitle());
+                                        //printError(c.address.getHostAddress() + c.foreignPort);
+                                        //printError(c.address.getHostAddress() + c.foreignPort);
                                     }
                                 printMessage(
                                   String.format(
@@ -137,12 +141,12 @@ public class ClientHandler {
                             }
                             buffer.storeObject(message == null
                               ? new Response(
-                                ResponseType.PublishedMessage,
-                                "You message has been published."
-                              )
-                              : new Response(
                                 ResponseType.InvalidCommand,
                                 "Title may not contain ':', both title and body cannot be empty."
+                              )
+                              : new Response(
+                                ResponseType.PublishedMessage,
+                                "You message has been published."
                               )
                             );
                         }
@@ -162,11 +166,10 @@ public class ClientHandler {
                                   )
                                 );
                             buffer.storeObject(topic == null
-                              ? new Response(
-                                ResponseType.TopicSubscribed,
-                                "You have successfully subscribed to topic."
+                              ? new Response(ResponseType.UnknownTopic, "Unknown topic.")
+                              : new Response(
+                                ResponseType.TopicSubscribed, "You have successfully subscribed to topic."
                               )
-                              : new Response(ResponseType.UnknownTopic, "Unknown topic.")
                             );
                         }
                     }

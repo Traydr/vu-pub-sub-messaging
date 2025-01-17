@@ -9,6 +9,7 @@ import shared.models.communication.*;
 import shared.models.data.Credentials;
 import shared.models.data.Post;
 import shared.models.generics.Pair;
+import shared.util.Styling;
 
 import static shared.util.Styling.*;
 import static shared.util.Styling.Colors.*;
@@ -19,6 +20,7 @@ import static client.util.Templates.*;
 public class MessagingClient implements Runnable {
 
     private SocketChannel channel = null;
+    private String username = "Guest";
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
     private final AtomicBoolean isConnecting = new AtomicBoolean(false);
     private final AtomicBoolean isConnected = new AtomicBoolean(false);
@@ -72,9 +74,10 @@ public class MessagingClient implements Runnable {
                 while (true) {
                     try {
                         if (channel == null) break;
-                        if (!buffer.read(channel))
+                        if (!buffer.read(channel)) {
                             for (var obj : buffer.retrieveObjects()) {
                                 var response = (Response) obj;
+                                //printError(response.getType().toString());
                                 if (response.getType() == ResponseType.NewPublication) {
                                     var post = (Post) response.getPayload();
                                     printMessage(
@@ -82,11 +85,23 @@ public class MessagingClient implements Runnable {
                                         RESET + ": " + BLUE + post.topic().getTitle() + GRAY + ": " +
                                         RESET + post.body()
                                     );
-                                } else printMessage(
-                                  GRAY + '<' + CYAN + "Server" + GRAY + '>' +
-                                    RESET + ": " + response.getPayload().toString()
-                                );
+                                } else if (
+                                  response.getType() == ResponseType.AuthorizationSuccess ||
+                                    response.getType() == ResponseType.RegistrationSuccess
+                                ) {
+                                    username = ((Pair<String, String>) response.getPayload()).getSecond();
+                                    printMessage(
+                                      GRAY + '<' + CYAN + "Server" + GRAY + '>' +
+                                        RESET + ": " + ((Pair<String, String>) response.getPayload()).getFirst().toString()
+                                    );
+                                } else {
+                                    printMessage(
+                                      GRAY + '<' + CYAN + "Server" + GRAY + '>' +
+                                        RESET + ": " + response.getPayload().toString()
+                                    );
+                                }
                             }
+                        }
                     } catch (IOException ignored) {}
                 }
             });
@@ -137,14 +152,19 @@ public class MessagingClient implements Runnable {
                                     new Pair<>(arguments.substring(0, arguments.indexOf(" ")), body)
                                   );
                               }
-                              default -> throw new IllegalArgumentException("Unknown command");
+                              default -> {
+                                  Thread.sleep(1000);
+                                  throw new IllegalArgumentException("Unknown command");
+                              }
                           };
-                      }, "", GRAY + '<' + CYAN + "Guest" + GRAY + '>'
+                      }, "", GRAY + '<' + CYAN + username + GRAY + '>'
                     );
+                    Thread.sleep(500);
                     buffer.storeObject(request);
                     while (buffer.write(channel));
                     if (request.getType() == RequestType.Disconnect)
                         break;
+                    Thread.sleep(500);
                 }
             } finally {
                 disconnect();
@@ -164,6 +184,7 @@ public class MessagingClient implements Runnable {
             channel = null;
         } catch (IOException ignored) {}
         if(isConnected.getAndSet(false)) {
+            username = "Guest";
             printSeparator();
             printMessage(
               GRAY + "Client socket closed,",

@@ -1,9 +1,14 @@
 package shared.models.data;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Date;
 
 
-public class Post {
+public class Post implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1;
 
     private final Topic topic;
     private String body;
