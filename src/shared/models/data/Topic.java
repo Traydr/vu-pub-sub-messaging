@@ -1,11 +1,14 @@
 package shared.models.data;
 
-import server.handlers.ClientHandler;
-
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 
 
-public class Topic {
+public class Topic implements Serializable  {
+
+    @Serial
+    private static final long serialVersionUID = 1;
 
     private String title;
     private ArrayList<Post> messages;

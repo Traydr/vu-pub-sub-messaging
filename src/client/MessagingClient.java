@@ -3,6 +3,7 @@ package client;
 import java.io.IOException;
 import java.nio.channels.*;
 import java.net.InetSocketAddress;
+import java.util.Date;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import shared.models.communication.*;
@@ -10,6 +11,7 @@ import shared.models.data.Credentials;
 import shared.models.data.Post;
 import shared.models.generics.Pair;
 import shared.util.Styling;
+import java.text.SimpleDateFormat;
 
 import static shared.util.Styling.*;
 import static shared.util.Styling.Colors.*;
@@ -77,13 +79,13 @@ public class MessagingClient implements Runnable {
                         if (!buffer.read(channel)) {
                             for (var obj : buffer.retrieveObjects()) {
                                 var response = (Response) obj;
-                                //printError(response.getType().toString());
                                 if (response.getType() == ResponseType.NewPublication) {
                                     var post = (Post) response.getPayload();
                                     printMessage(
-                                      GRAY + '<' + CYAN + "New post" + GRAY + '>' +
+                                      GRAY + '<' + PURPLE + "New post" + RESET + " by " + CYAN + post.author().username() + GRAY + '>' +
                                         RESET + ": " + BLUE + post.topic().getTitle() + GRAY + ": " +
-                                        RESET + post.body()
+                                        RESET + post.body(),
+                                      GRAY + new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(post.createdAt())
                                     );
                                 } else if (
                                   response.getType() == ResponseType.AuthorizationSuccess ||

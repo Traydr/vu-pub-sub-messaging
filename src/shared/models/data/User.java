@@ -1,9 +1,14 @@
 package shared.models.data;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 
 
-public class User {
+public class User implements Serializable  {
+
+    @Serial
+    private static final long serialVersionUID = 1;
 
     private final Credentials info;
     private final ArrayList<Topic> subscriptions;

@@ -124,13 +124,8 @@ public class ClientHandler {
                             var message = server.addMessage(data.getFirst(), data.getSecond(), user);
                             if (message != null) {
                                 for (var c : server.getClients())
-                                    if (c.user != null && c.user.getSubscriptions().contains(message.topic())) {
-                                        c.buffer.storeObject(new Response(ResponseType.Echo, message.topic().getTitle() + ":" + message.body()));
-                                        //c.buffer.storeObject(new Response(ResponseType.NewPublication, message));
-                                        //printError(c.user.username() + " received a Request from " + message.topic().getTitle());
-                                        //printError(c.address.getHostAddress() + c.foreignPort);
-                                        //printError(c.address.getHostAddress() + c.foreignPort);
-                                    }
+                                    if (c.user != null && c.user.getSubscriptions().contains(message.topic()))
+                                        c.buffer.storeObject(new Response(ResponseType.NewPublication, message));
                                 printMessage(
                                   String.format(
                                     GRAY + '[' + YELLOW + "%d" + GRAY + ']' + RESET + ": " + PURPLE + "Client " +
