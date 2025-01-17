@@ -5,10 +5,9 @@ import java.nio.channels.*;
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import shared.models.communication.Request;
-import shared.models.communication.RequestType;
-import shared.models.communication.TransmissionBuffer;
+import shared.models.communication.*;
 import shared.models.data.Credentials;
+import shared.models.data.Post;
 import shared.models.generics.Pair;
 
 import static shared.util.Styling.*;
@@ -69,8 +68,30 @@ public class MessagingClient implements Runnable {
             );
             printSeparator();
             var buffer = TransmissionBuffer.allocate();
+            var reading = new Thread(() -> {
+                while (true) {
+                    try {
+                        if (channel == null) break;
+                        if (!buffer.read(channel))
+                            for (var obj : buffer.retrieveObjects()) {
+                                var response = (Response) obj;
+                                if (response.getType() == ResponseType.NewPublication) {
+                                    var post = (Post) response.getPayload();
+                                    printMessage(
+                                      GRAY + '<' + CYAN + "New post" + GRAY + '>' +
+                                        RESET + ": " + BLUE + post.topic().getTitle() + GRAY + ": " +
+                                        RESET + post.body()
+                                    );
+                                } else printMessage(
+                                  GRAY + '<' + CYAN + "Server" + GRAY + '>' +
+                                    RESET + ": " + response.getPayload().toString()
+                                );
+                            }
+                    } catch (IOException ignored) {}
+                }
+            });
             try {
-
+                reading.start();
                 for (;;) {
                     var request = requestInput(
                       input -> {
